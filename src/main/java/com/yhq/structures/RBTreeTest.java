@@ -8,14 +8,14 @@ public class RBTreeTest {
 
 	public static void main(String[] args) {
 		// System.out.println(true ^ false);
-		createDefaultTree();
+		createDefaultTree(32);
 	}
 
-	public static RBTree createDefaultTree() {
+	public static RBTree createDefaultTree(int nodeCount) {
 		RBTree tree = new RBTree(0);
 		// HashMap<Integer, Boolean> map = new HashMap<>();
 		// map.put(8, true);
-		for (int i = 1; i < 32; ++i) {
+		for (int i = 1; i < nodeCount; ++i) {
 			tree.insert(i);
 		}
 		System.out.println(tree.depth());

@@ -45,8 +45,8 @@ public class TreeController {
 
 	@ResponseBody
 	@RequestMapping("default")
-	public RBTree defaultTree() {
-		return RBTreeTest.createDefaultTree();
+	public RBTree defaultTree(@RequestParam int nodeCount) {
+		return RBTreeTest.createDefaultTree(nodeCount);
 	}
 
 	@ResponseBody
@@ -66,8 +66,8 @@ public class TreeController {
 
 	@ResponseBody
 	@RequestMapping("copy")
-	public void copy() {
-		tree = RBTreeTest.createDefaultTree();
+	public void copy(@RequestParam int nodeCount) {
+		tree = RBTreeTest.createDefaultTree(nodeCount);
 	}
 
 }

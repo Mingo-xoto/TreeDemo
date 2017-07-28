@@ -216,14 +216,15 @@ public class RBTree implements Serializable {
 		RBNode lNephew = brother.left;
 		RBNode rNephew = brother.right;
 		if (brother.color) {
-			if (lNephew == null) {
-				if (rNephew == null) {
+			if (lNephew == null || lNephew.color) {
+				if (rNephew == null || rNephew.color) {
 					if (parent.color) {
 						// 黑兄二黑侄黑父:父结点染成新结点的颜色，新结点染成黑色，兄结点染成红色
 						parent.color = substitute.color;
 						brother.color = RED;
 						substitute.color = BLACK;
-						deleteFixup(parent, false);
+						if (first)
+							deleteFixup(parent, false);
 					} else {
 						// 黑兄二黑侄红父:只需将父结点变为黑色，兄结点变为红色，新结点变为黑色
 						blackBrotherAndNephewAndRedParent(parent, brother, leftBrother);
@@ -270,7 +271,8 @@ public class RBTree implements Serializable {
 						rNephew.color = BLACK;
 						rotateLeft(parent);
 					}
-					deleteFixup(brother, false);
+					if (first)
+						deleteFixup(brother, false);
 				}
 			}
 		} else {
@@ -278,15 +280,12 @@ public class RBTree implements Serializable {
 			parent.color = RED;
 			if (first) {
 				if (leftBrother) {// LL
-					rNephew.color = RED;
 					rotateRight(parent);
 				} else {// RR
-					lNephew.color = RED;
 					rotateLeft(parent);
 				}
-			} else {
-				brother.color = BLACK;
 			}
+			brother.color = BLACK;
 		}
 	}
 
