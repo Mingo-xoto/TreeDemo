@@ -61,6 +61,7 @@
 				buildCanvas(data);
 			}
 		});
+		$("#i_key").val("");
 	});
 
 	$("#tree").click(function() {
@@ -85,8 +86,7 @@
 	var ctx;
 	var i = 0;
 	var radius = 20;
-// 	var x_offset = 70;
-	var y_offset = 70;
+	var y_offset = 50;
 	
 	
 	$("#default").click(function() {
@@ -173,20 +173,28 @@
 	}
 
 	//绘制子节点-->node:节点，x:x坐标，y：y坐标，h：层级，offset：x坐标偏移量
-	function buildChildNode(node, x, y,h,offset) {
+	function buildChildNode(node, x, y,h,x_offset) {
 		var left = node.left;
 		var right = node.right;
+		
+		//圆心连线长（(x,y)圆心与(x - x_offset,y+y_offset)或者(x + x_offset,y+y_offset)连线长度）
+		var hypotenuse = Math.sqrt(x_offset*x_offset + y_offset*y_offset);
+		//斜边长比
+		var rate = (radius/hypotenuse);
+		
+		//(x,y)圆心与(x - x_offset,y+y_offset)或者(x + x_offset,y+y_offset)连线在(x,y)圆上的交点坐标
+		var o_x = x_offset * rate;
+		var o_y = y_offset * rate;
+		
 		if (left != null) {
-			link(x-Math.sqrt(radius*radius/2),y+Math.sqrt(radius*radius/2),x-offset,y+y_offset);
-// 			console.info(node.key+"---" + left.key + "-->" + (left.color ? "黑" : "红"));
-			buildNode(left, x - offset, y + y_offset);
-			buildChildNode(left, x - offset, y + y_offset,h+1,offset/2);
+			link(x-o_x,y+o_y,x - x_offset,y+y_offset);
+			buildNode(left, x - x_offset, y + y_offset);
+			buildChildNode(left, x - x_offset, y + y_offset,h+1,x_offset/2);
 		}
 		if (right != null) {
-			link(x+Math.sqrt(radius*radius/2),y+Math.sqrt(radius*radius/2),x+offset,y+y_offset);
-// 			console.info(node.key+"---" + right.key + "-->" + (right.color ? "黑" : "红"));
-			buildNode(right, x + offset, y + y_offset);
-			buildChildNode(right, x + offset, y + y_offset,h+1,offset/2);
+			link(x+o_x,y+o_y,x+x_offset,y+y_offset);
+			buildNode(right, x + x_offset, y + y_offset);
+			buildChildNode(right, x + x_offset, y + y_offset,h+1,x_offset/2);
 		}
 	}
 
@@ -200,6 +208,7 @@
 				buildCanvas(data);
 			}
 		});
+		$("#d_key").val("");
 	});
 	$("#delete").click(function() {
 		$.ajax({

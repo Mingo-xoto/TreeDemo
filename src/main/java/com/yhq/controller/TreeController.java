@@ -52,7 +52,8 @@ public class TreeController {
 	@ResponseBody
 	@RequestMapping("remove")
 	public RBTree remove(@RequestParam int key) {
-		tree.remove(key);
+		if (tree != null)
+			tree.remove(key);
 		return tree;
 	}
 

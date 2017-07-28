@@ -138,105 +138,173 @@ public class RBTree implements Serializable {
 	}
 
 	public void remove(int key) {
-		remove(key, root);
-	}
-
-	public void remove(int key, RBNode t) {
+		RBNode t = root;
 		while (true) {
 			if (key == t.key) {
-				if (t.parent == null) {
-					removeRoot();
-				} else {
-					remove(t, t.parent);
-				}
+				System.out.println("移除：" + key);
+				remove(t);
 				return;
 			} else if (key < t.key) {
 				t = t.left;
-			} else {
+			} else if (key > t.key) {
 				t = t.right;
 			}
-		}
-	}
-
-	private void removeRoot() {
-		RBNode left = root.left;
-		RBNode right = root.right;
-		if (left == null && right == null) {
-			// 叶子节点,直接删除
-			root = null;
-		} else if (left != null && right != null) {
-			remove(root);
-		} else {
-			if (left == null) {
-				// 只左节点为null，被删除替换为右节点
-				root = right;
-			} else {
-				// 只右节点为null，被删除替换为左节点
-				root = left;
+			if (t == null) {
+				return;
 			}
 		}
 	}
 
-	private void remove(RBNode delete, RBNode parent) {
-		RBNode left = delete.left;
-		RBNode right = delete.right;
-		if (left == null && right == null) {
-			// 叶子节点,直接删除
-			replaceWithNode(delete, parent, null);
-		} else if (left != null && right != null) {
-			remove(delete);
-		} else {
-			if (left == null) {
-				// 只左节点为null，被删除替换为右节点
-				replaceWithNode(delete, parent, right);
-				right.parent = parent;
-			} else {
-				// 只右节点为null，被删除替换为左节点
-				replaceWithNode(delete, parent, left);
-				left.parent = parent;
-			}
-		}
-	}
-
-	/**
-	 * 移除节点
-	 * 
-	 * @author HuaQi.Yang
-	 * @date 2017年7月26日
-	 * @param left
-	 */
 	private void remove(RBNode delete) {
-		if (delete.left.right == null) {
-			RBNode left = delete.left;
-			remove(left, delete);
-			delete.key = left.key;
+		if (delete.left == null) {
+			if (delete.right == null) {
+				// 叶子节点
+				if (delete.color) {
+					// case1：叶子为黑色，与case5相同情况处理
+					deleteFixup(delete, true);
+				}
+				// case2：叶子为红色，直接删除即可
+				removeRedLeaf(delete);
+			} else {
+				// case3: 只有非空右子树,则delete一定是黑色，且右子树一定为红色
+				delete.key = delete.right.key;
+				delete.right = null;
+			}
 		} else {
-			RBNode tr = searchLastRight(delete.left);
-			RBNode rfParent = tr.parent;
-			RBNode rfLeft = tr.left;
-			// 将tr内容替换delete内容
-			delete.key = tr.key;
-			// 将rfLeft替换tr（删除tr）
-			rfParent.right = rfLeft;
-			if (rfLeft != null)
-				rfLeft.parent = rfParent;
-		}
-		// 若删除的是黑色节点：需要调整结构
-		if (delete.color) {
-
+			if (delete.right == null) {
+				// case4：只有非空左子树,则delete一定是黑色，且左子树一定为红色
+				delete.key = delete.left.key;
+				delete.left = null;
+			} else {
+				// 双非空子树
+				// 找到替换的前驱节点（真正删除的节点）
+				RBNode substitute = searchLastRight(delete.left);
+				if (substitute.color) {
+					// case5：substitute为黑色节点
+					deleteFixup(substitute, true);
+				}
+				// case6： substitute为红色节点：直接断开即可
+				removeRedLeaf(substitute);
+				// 将substitute内容覆盖delete内容
+				delete.key = substitute.key;
+			}
 		}
 	}
 
-	private void replaceWithNode(RBNode delete, RBNode parent, RBNode node) {
-		if (parent.left == delete) {
-			parent.left = node;
+	private void deleteFixup(RBNode substitute, boolean first) {
+		RBNode parent = substitute.parent;
+		RBNode brother;
+		boolean leftBrother;
+		if (parent.left == substitute) {
+			leftBrother = false;
+			brother = parent.right;
 		} else {
-			parent.right = node;
+			leftBrother = true;
+			brother = parent.left;
+		}
+		// substitute为黑色时brother一定存在
+		RBNode lNephew = brother.left;
+		RBNode rNephew = brother.right;
+		if (brother.color) {
+			if (lNephew == null) {
+				if (rNephew == null) {
+					if (parent.color) {
+						// 黑兄二黑侄黑父:父结点染成新结点的颜色，新结点染成黑色，兄结点染成红色
+						parent.color = substitute.color;
+						brother.color = RED;
+						substitute.color = BLACK;
+						deleteFixup(parent, false);
+					} else {
+						// 黑兄二黑侄红父:只需将父结点变为黑色，兄结点变为红色，新结点变为黑色
+						blackBrotherAndNephewAndRedParent(parent, brother, leftBrother);
+					}
+				} else {
+					if (leftBrother) {
+						// 黑左兄红右侄：LR
+						rNephew.color = parent.color;
+						parent.color = BLACK;
+						rotateLeft(brother);
+						rotateRight(parent);
+					} else {
+						// 黑右兄红右侄：RR
+						brother.color = parent.color;
+						rNephew.color = BLACK;
+						parent.color = BLACK;
+						rotateLeft(parent);
+					}
+				}
+			} else {
+				if (rNephew == null) {
+					if (leftBrother) {
+						// 黑左兄红左侄：LL
+						brother.color = parent.color;
+						lNephew.color = BLACK;
+						parent.color = BLACK;
+						rotateRight(parent);
+					} else {
+						// 黑右兄红左侄：RL
+						lNephew.color = parent.color;
+						parent.color = BLACK;
+						rotateRight(brother);
+						rotateLeft(parent);
+					}
+				} else {
+					parent.color = BLACK;
+					brother.color = BLACK;
+					if (leftBrother) {
+						// 黑左兄红双侄:LL
+						lNephew.color = BLACK;
+						rotateRight(parent);
+					} else {
+						// 黑右兄红双侄:RR
+						rNephew.color = BLACK;
+						rotateLeft(parent);
+					}
+					deleteFixup(brother, false);
+				}
+			}
+		} else {
+			// brother为红色时：父节点一定是黑色
+			parent.color = RED;
+			if (first) {
+				if (leftBrother) {// LL
+					rNephew.color = RED;
+					rotateRight(parent);
+				} else {// RR
+					lNephew.color = RED;
+					rotateLeft(parent);
+				}
+			} else {
+				brother.color = BLACK;
+			}
+		}
+	}
+
+	private void blackBrotherAndNephewAndRedParent(RBNode parent, RBNode brother, boolean leftBrother) {
+		parent.color = BLACK;
+		brother.color = RED;
+		disconnectNode(parent, leftBrother);
+	}
+
+	private void disconnectNode(RBNode parent, boolean leftBrother) {
+		if (leftBrother) {
+			parent.right = null;
+		} else {
+			parent.left = null;
+		}
+	}
+
+	private void removeRedLeaf(RBNode leaf) {
+		RBNode parent = leaf.parent;
+		if (parent.left == leaf) {
+			parent.left = null;
+		} else {
+			parent.right = null;
 		}
 	}
 
 	/**
-	 * 搜索最左叶子节点
+	 * 搜索最左叶子节点(后继节点)
 	 * 
 	 * @author HuaQi.Yang
 	 * @date 2017年7月26日
@@ -251,7 +319,7 @@ public class RBTree implements Serializable {
 	}
 
 	/**
-	 * 搜索最右叶子节点
+	 * 搜索最右叶子节点(前驱节点)
 	 * 
 	 * @author HuaQi.Yang
 	 * @date 2017年7月26日
@@ -263,10 +331,6 @@ public class RBTree implements Serializable {
 			node = node.right;
 		}
 		return node;
-		// if (node.right == null) {
-		// return node;
-		// }
-		// return searchLastRight(node.right);
 	}
 
 	/**
@@ -354,7 +418,6 @@ public class RBTree implements Serializable {
 				rotateLeft(parent);
 				rotateRight(grandParent);
 			} else {// RR: 父节点为祖父节点右节点：以祖父节点为支点左旋
-				System.out.println("RR");
 				parent.color = BLACK;
 				grandParent.color = RED;
 				rotateLeft(grandParent);
@@ -376,16 +439,16 @@ public class RBTree implements Serializable {
 		right.parent = parent;
 		right.left = node;
 		node.parent = right;
+		// 当前node为根节点：将rLeft作为其新的右节点
+		node.right = rLeft;
+		if (rLeft != null)
+			rLeft.parent = node;
+
 		if (parent == null) {
-			// 当前node为根节点：将rLeft作为其新的右节点，并设置right为新根
-			node.color = RED;
+			// node.color = RED;
+			// 设置right为新根
 			root = right;
-			node.right = rLeft;
-			if (rLeft != null)
-				rLeft.parent = node;
 		} else {
-			// node为非根节点：其新右节点指向null，并且right替换node原位置
-			node.right = null;
 			if (parent.left == node) {
 				parent.left = right;
 			} else {
@@ -408,16 +471,15 @@ public class RBTree implements Serializable {
 		left.parent = parent;
 		left.right = node;
 		node.parent = left;
+		// node为根节点：将lRight作为其新的左节点
+		node.left = lRight;
+		if (lRight != null)
+			lRight.parent = node;
 		if (parent == null) {
-			// node为根节点：将lRight作为其新的左节点，并设置left为新根
-			node.color = RED;
+			// 设置left为新根
+			// node.color = RED;
 			root = left;
-			node.left = lRight;
-			if (lRight != null)
-				lRight.parent = node;
 		} else {
-			// node为非根节点：其新左节点指向null，并且right替换node原位置
-			node.left = null;
 			if (parent.left == node) {
 				parent.left = left;
 			} else {
