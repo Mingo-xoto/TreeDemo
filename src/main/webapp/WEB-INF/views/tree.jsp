@@ -136,10 +136,8 @@
 		var x;
 		var y = 30;
 // 		var hierarchy = 2*Math.floor(Math.log2(data.size+1));//计算红黑树的最大深度
-		var hierarchy = depth(root);//data.hierarchy;//深度
-		console.info("树深度："+hierarchy);
+		var hierarchy = depth(root);
 		var lastHierarchyWidth = Math.pow(2,hierarchy)*2*(radius+5) ;//末层宽度
-		
 		if(lastHierarchyWidth >= canvas.width){
 			canvas.width = lastHierarchyWidth;
 		}
@@ -150,17 +148,17 @@
 		
 		ctx = canvas.getContext("2d");
 
-		buildNode(root, x, y);
-		buildChildNode(root, x, y,1,lastHierarchyWidth/Math.pow(2,2));
-	}
-	
-	//绘制节点间连线
-	function link(px, py, cx, cy) {
-		ctx.moveTo(px, py);
-		ctx.lineTo(cx, cy);
-		ctx.stroke();
+		drawNode(root, x, y);
+		drawChildNode(root, x, y);
 	}
 
+	//绘制节点间连线---> p_x,p_y:父节点x,y坐标,c_x,c_y:子节点x,y坐标
+	function link(p_x, p_y, c_x, c_y) {
+		ctx.moveTo(p_x, p_y);
+		ctx.lineTo(c_x, c_y);
+		ctx.stroke();
+	}
+	
 	//绘制树节点圆圈
 	function circle(key, x, y, color) {
 		ctx.beginPath();
@@ -184,16 +182,18 @@
 	}
 
 	//绘制节点
-	function buildNode(node, x, y) {
+	function drawNode(node, x, y) {
 // 		console.info(x,y);
 		circle(node.key, x, y, node.color);
 		key(node.key, x, y);
 	}
 
-	//绘制子节点-->node:节点，x:x坐标，y：y坐标，h：层级，offset：x坐标偏移量
-	function buildChildNode(node, x, y,h,x_offset) {
-		var left = node.left;
-		var right = node.right;
+	
+	
+	function getParam(node,brotherWidth){
+		var hierarchy = depth(node)+1;//当前节点的子树深度
+		var lastHierarchyWidth = brotherWidth==0?Math.pow(2,hierarchy)*(radius+5)*2:Math.pow(2,hierarchy)*(radius+5) +brotherWidth;//末层宽度
+		var x_offset = lastHierarchyWidth/Math.pow(2,2);
 		
 		//圆心连线长（(x,y)圆心与(x - x_offset,y+y_offset)或者(x + x_offset,y+y_offset)连线长度）
 		var hypotenuse = Math.sqrt(x_offset*x_offset + y_offset*y_offset);
@@ -203,16 +203,41 @@
 		//(x,y)圆心与(x - x_offset,y+y_offset)或者(x + x_offset,y+y_offset)连线在(x,y)圆上的交点坐标
 		var o_x = x_offset * rate;
 		var o_y = y_offset * rate;
+		return new param(lastHierarchyWidth,x_offset,o_x,o_y);
+	}
+	
+	function param(lastHierarchyWidth,x_offset,o_x,o_y){
+		this.lastHierarchyWidth = lastHierarchyWidth;
+		this.x_offset = x_offset;
+		this.o_x = o_x;
+		this.o_y = o_y;
+	}
+	
+	//绘制子节点-->node:节点，x:x坐标，y：y坐标，x_offset：x坐标偏移量
+	function drawChildNode(node, x, y) {
+		var left = node.left;
+		var right = node.right;
 		
+		var p_param = getParam(node,0);
+		console.info(p_param);
+		var l_param;
+		var r_param;
+		var lastHierarchyWidth = 0;
 		if (left != null) {
-			link(x-o_x,y+o_y,x - x_offset,y+y_offset);
-			buildNode(left, x - x_offset, y + y_offset);
-			buildChildNode(left, x - x_offset, y + y_offset,h+1,x_offset/2);
+			l_param = getParam(left,0);
+			console.info(l_param);
+			lastHierarchyWidth = l_param.lastHierarchyWidth;
+			link(x-l_param.o_x,y+l_param.o_y,x - l_param.x_offset,y+y_offset);
+			drawNode(left, x - l_param.x_offset, y + y_offset);
+			drawChildNode(left, x - l_param.x_offset, y + y_offset);
 		}
 		if (right != null) {
-			link(x+o_x,y+o_y,x+x_offset,y+y_offset);
-			buildNode(right, x + x_offset, y + y_offset);
-			buildChildNode(right, x + x_offset, y + y_offset,h+1,x_offset/2);
+			r_param = getParam(right,lastHierarchyWidth);
+			console.info(r_param);
+			
+			link(x+r_param.o_x,y+r_param.o_y,x+r_param.x_offset,y+y_offset);
+			drawNode(right, x + r_param.x_offset, y + y_offset);
+			drawChildNode(right, x + r_param.x_offset, y + y_offset);
 		}
 	}
 

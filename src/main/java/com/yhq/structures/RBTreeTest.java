@@ -15,7 +15,7 @@ public class RBTreeTest {
 		RBTree tree = new RBTree(0);
 		// HashMap<Integer, Boolean> map = new HashMap<>();
 		// map.put(8, true);
-		for (int i = 1; i < 11; ++i) {
+		for (int i = 1; i < 32; ++i) {
 			tree.insert(i);
 		}
 		System.out.println(tree.depth());
