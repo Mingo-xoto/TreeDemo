@@ -192,9 +192,18 @@ public class RBTree implements Serializable {
 				if (substitute.color) {
 					// case5：substitute为黑色节点
 					deleteFixup(substitute, true);
+					// 若delete的前驱节点就是其左子树：则证明其左子树没有右子树，直接将左子树的左子树替换为其本身
+					if (substitute == delete.left) {
+						delete.left = substitute.left;
+						substitute.left.parent = delete;
+						substitute.left.color = BLACK;
+					}else{
+						removeRedLeaf(substitute);
+					}
+				} else {
+					// case6： substitute为红色节点：直接断开即可
+					removeRedLeaf(substitute);
 				}
-				// case6： substitute为红色节点：直接断开即可
-				removeRedLeaf(substitute);
 				// 将substitute内容覆盖delete内容
 				delete.key = substitute.key;
 			}
