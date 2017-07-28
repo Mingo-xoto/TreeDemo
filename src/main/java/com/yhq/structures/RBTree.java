@@ -16,7 +16,6 @@ public class RBTree implements Serializable {
 	private static final boolean RED = false;
 	private static final boolean BLACK = true;
 	private int size = 0;// 节点数
-	private int hierarchy = 0;// 树深
 
 	public RBNode getRoot() {
 		return root;
@@ -38,12 +37,26 @@ public class RBTree implements Serializable {
 		return size;
 	}
 
-	public int getHierarchy() {
-		return hierarchy;
+	// 深度
+	public int depth() {
+		if (root == null) {
+			return -1;
+		}
+		return height() - 1;
 	}
 
-	public void setHierarchy(int hierarchy) {
-		this.hierarchy = hierarchy;
+	// 高度
+	public int height() {
+		return height(root);
+	}
+
+	private int height(RBNode node) {
+		if (node == null) {
+			return 0;
+		}
+		int lh = height(node.left);
+		int rh = height(node.right);
+		return lh > rh ? lh + 1 : rh + 1;
 	}
 
 	public RBTree() {
@@ -106,31 +119,29 @@ public class RBTree implements Serializable {
 		RBNode node = new RBNode();
 		node.key = key;
 		node.color = RED;
-		insert(node, root, 1);
+		insert(node, root);
 		size++;
 		// traverseLeft();
 	}
 
-	private void insert(RBNode newNode, RBNode tmpNode, int h) {
+	private void insert(RBNode newNode, RBNode tmpNode) {
 		if (newNode.key < tmpNode.key) {
 			// 若当前节点t的left节点为NIL，则直接将新节点作为t的left节点
 			if (tmpNode.left == null) {
 				tmpNode.left = newNode;
 				newNode.parent = tmpNode;
-				hierarchy = h;
 				insertFixup(newNode);
 			} else {
-				insert(newNode, tmpNode.left, ++h);
+				insert(newNode, tmpNode.left);
 			}
 		} else if (newNode.key >= tmpNode.key) {
 			// 若当前节点t的right节点为NIL，则直接将新节点作为t的right节点
 			if (tmpNode.right == null) {
 				tmpNode.right = newNode;
 				newNode.parent = tmpNode;
-				hierarchy = h;
 				insertFixup(newNode);
 			} else {
-				insert(newNode, tmpNode.right, ++h);
+				insert(newNode, tmpNode.right);
 			}
 		} else {
 			throw new RuntimeException("二叉排序树节点值不能重复!");
@@ -141,7 +152,6 @@ public class RBTree implements Serializable {
 		RBNode t = root;
 		while (true) {
 			if (key == t.key) {
-				System.out.println("移除：" + key);
 				remove(t);
 				return;
 			} else if (key < t.key) {
@@ -398,8 +408,6 @@ public class RBTree implements Serializable {
 	 * @param left
 	 */
 	private void redBlackConflict(RBNode node, RBNode parent, RBNode grandParent, boolean left) {
-		hierarchy--;
-
 		if (node == parent.left) {// 当前节点的父节点是红色，叔叔节点是黑色，且当前节点是其父节点的左孩子
 			if (left) {// LL: 父节点为祖父节点左节点：以祖父节点为支点右旋
 				parent.color = BLACK;

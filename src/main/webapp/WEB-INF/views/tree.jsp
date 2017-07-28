@@ -98,6 +98,24 @@
 		});
 	});
 	
+	// 深度
+	function depth(root) {
+		if (root == null) {
+			return -1;
+		}
+		return height(root) - 1;
+	}
+
+	function height(node) {
+		if (node == null) {
+			return 0;
+		}
+		var lh = height(node.left);
+		var rh = height(node.right);
+		return lh > rh ? lh + 1 : rh + 1;
+	}
+
+	
 	function resizeCanvas(){
 		canvas = document.getElementById("tree-div");
 		//重绘画布区域背景
@@ -118,7 +136,7 @@
 		var x;
 		var y = 30;
 // 		var hierarchy = 2*Math.floor(Math.log2(data.size+1));//计算红黑树的最大深度
-		var hierarchy = data.hierarchy;//深度
+		var hierarchy = depth(root);//data.hierarchy;//深度
 		console.info("树深度："+hierarchy);
 		var lastHierarchyWidth = Math.pow(2,hierarchy)*2*(radius+5) ;//末层宽度
 		
