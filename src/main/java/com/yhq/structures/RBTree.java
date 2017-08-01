@@ -183,7 +183,7 @@ public class RBTree implements Serializable {
 					removeFixup(delete, true);
 				}
 				// case2：根节点或为红色叶子，直接删除即可
-				removeRedLeaf(delete);
+				removeLeaf(delete);
 			} else {
 				// case3: 只有非空右子树,则delete一定是黑色，且右子树一定为红色
 				delete.key = delete.right.key;
@@ -206,12 +206,19 @@ public class RBTree implements Serializable {
 					remove(substitute);
 				} else {
 					// case6： substitute为红色节点：直接断开即可
-					removeRedLeaf(substitute);
+					removeLeaf(substitute);
 				}
 			}
 		}
 	}
 
+	/**
+	 * 解决移除节点冲突（黑黑冲突）
+	 * @author HuaQi.Yang
+	 * @date 2017年8月1日
+	 * @param substitute
+	 * @param first
+	 */
 	private void removeFixup(RBNode substitute, boolean first) {
 		RBNode parent = substitute.parent;
 		if (parent == null) {
@@ -231,89 +238,136 @@ public class RBTree implements Serializable {
 		RBNode lNephew = brother.left;
 		RBNode rNephew = brother.right;
 		if (brother.color) {
-			if (lNephew == null || lNephew.color) {
-				if (rNephew == null || rNephew.color) {
-					if (parent.color) {
-						// 黑兄二黑侄黑父:父结点染成新结点的颜色，新结点染成黑色，兄结点染成红色
-						parent.color = substitute.color;
-						brother.color = RED;
-						substitute.color = BLACK;
-						if (first)
-							removeFixup(parent, false);
-					} else {
-						// 黑兄二黑侄红父:只需将父结点变为黑色，兄结点变为红色，新结点变为黑色
-						blackBrotherAndNephewAndRedParent(parent, brother, leftBrother);
-					}
-				} else {
-					if (leftBrother) {
-						// 黑左兄红右侄：LR
-						rNephew.color = parent.color;
-						parent.color = BLACK;
-						rotateLeft(brother);
-						rotateRight(parent);
-					} else {
-						// 黑右兄红右侄：RR
-						brother.color = parent.color;
-						rNephew.color = BLACK;
-						parent.color = BLACK;
-						rotateLeft(parent);
-					}
-				}
-			} else {
-				if (rNephew == null) {
-					if (leftBrother) {
-						// 黑左兄红左侄：LL
-						brother.color = parent.color;
-						lNephew.color = BLACK;
-						parent.color = BLACK;
-						rotateRight(parent);
-					} else {
-						// 黑右兄红左侄：RL
-						lNephew.color = parent.color;
-						parent.color = BLACK;
-						rotateRight(brother);
-						rotateLeft(parent);
-					}
-				} else {
-					parent.color = BLACK;
-					brother.color = BLACK;
-					if (leftBrother) {
-						// 黑左兄红双侄:LL
-						lNephew.color = BLACK;
-						rotateRight(parent);
-					} else {
-						// 黑右兄红双侄:RR
-						rNephew.color = BLACK;
-						rotateLeft(parent);
-					}
-					if (first)
-						removeFixup(brother, false);
-				}
-			}
+			blackBrother(substitute, first, parent, brother, leftBrother, lNephew, rNephew);
 		} else {
-			// brother为红色时：父节点一定是黑色
-			if (parent.parent == null) {
-				// 父节点是根节点:则设置左侄子为红色即可
-				lNephew.color = RED;
-			} else
-				parent.color = RED;
-			if (first) {
-				if (leftBrother) {// LL
-					rotateRight(parent);
-				} else {// RR
-					rotateLeft(parent);
-				}
-			}
-			brother.color = BLACK;
+			redBrotherCase(first, parent, brother, leftBrother, lNephew);
 		}
 	}
 
-	private void blackBrotherAndNephewAndRedParent(RBNode parent, RBNode brother, boolean leftBrother) {
-		parent.color = BLACK;
-		brother.color = RED;
-		disconnectNode(parent, leftBrother);
+	/**
+	 * 黑兄情况
+	 * @author HuaQi.Yang
+	 * @date 2017年8月1日
+	 * @param substitute
+	 * @param first
+	 * @param parent
+	 * @param brother
+	 * @param leftBrother
+	 * @param lNephew
+	 * @param rNephew
+	 */
+	private void blackBrother(RBNode substitute, boolean first, RBNode parent, RBNode brother, boolean leftBrother, RBNode lNephew, RBNode rNephew) {
+		if (lNephew == null || lNephew.color) {
+			if (rNephew == null || rNephew.color) {
+				blackNephewCase(substitute, first, parent, brother, leftBrother);
+			} else {
+				if (leftBrother) {
+					// 黑左兄红右侄：LR
+					rNephew.color = parent.color;
+					parent.color = BLACK;
+					rotateLeft(brother);
+					rotateRight(parent);
+				} else {
+					// 黑右兄红右侄：RR
+					brother.color = parent.color;
+					rNephew.color = BLACK;
+					parent.color = BLACK;
+					rotateLeft(parent);
+				}
+			}
+		} else {
+			if (rNephew == null) {
+				if (leftBrother) {
+					// 黑左兄红左侄：LL
+					brother.color = parent.color;
+					lNephew.color = BLACK;
+					parent.color = BLACK;
+					rotateRight(parent);
+				} else {
+					// 黑右兄红左侄：RL
+					lNephew.color = parent.color;
+					parent.color = BLACK;
+					rotateRight(brother);
+					rotateLeft(parent);
+				}
+			} else {
+				parent.color = BLACK;
+				brother.color = BLACK;
+				if (leftBrother) {
+					// 黑左兄红双侄:LL
+					lNephew.color = BLACK;
+					rotateRight(parent);
+				} else {
+					// 黑右兄红双侄:RR
+					rNephew.color = BLACK;
+					rotateLeft(parent);
+				}
+				if (first)
+					removeFixup(brother, false);
+			}
+		}
 	}
 
+	/**
+	 * 黑兄二黑侄情况
+	 * @author HuaQi.Yang
+	 * @date 2017年8月1日
+	 * @param substitute
+	 * @param first
+	 * @param parent
+	 * @param brother
+	 * @param leftBrother
+	 */
+	private void blackNephewCase(RBNode substitute, boolean first, RBNode parent, RBNode brother, boolean leftBrother) {
+		if (parent.color) {
+			// 黑兄二黑侄黑父:父结点染成新结点的颜色，新结点染成黑色，兄结点染成红色
+			parent.color = substitute.color;
+			brother.color = RED;
+			substitute.color = BLACK;
+			if (first)
+				removeFixup(parent, false);
+		} else {
+			// 黑兄二黑侄红父:只需将父结点变为黑色，兄结点变为红色，新结点变为黑色
+			parent.color = BLACK;
+			brother.color = RED;
+			disconnectNode(parent, leftBrother);
+		}
+	}
+
+	/**
+	 * 红兄情况
+	 * @author HuaQi.Yang
+	 * @date 2017年8月1日
+	 * @param first
+	 * @param parent
+	 * @param brother
+	 * @param leftBrother
+	 * @param lNephew
+	 */
+	private void redBrotherCase(boolean first, RBNode parent, RBNode brother, boolean leftBrother, RBNode lNephew) {
+		// brother为红色时：父节点一定是黑色
+		if (parent.parent == null) {
+			// 父节点是根节点:则设置左侄子为红色即可
+			lNephew.color = RED;
+		} else
+			parent.color = RED;
+		if (first) {
+			if (leftBrother) {// LL
+				rotateRight(parent);
+			} else {// RR
+				rotateLeft(parent);
+			}
+		}
+		brother.color = BLACK;
+	}
+
+	/**
+	 * 断开真正被删除的节点
+	 * @author HuaQi.Yang
+	 * @date 2017年8月1日
+	 * @param parent
+	 * @param leftBrother
+	 */
 	private void disconnectNode(RBNode parent, boolean leftBrother) {
 		if (leftBrother) {
 			parent.right = null;
@@ -322,7 +376,13 @@ public class RBTree implements Serializable {
 		}
 	}
 
-	private void removeRedLeaf(RBNode leaf) {
+	/**
+	 * 移除叶子节点
+	 * @author HuaQi.Yang
+	 * @date 2017年8月1日
+	 * @param leaf
+	 */
+	private void removeLeaf(RBNode leaf) {
 		RBNode parent = leaf.parent;
 		if (parent == null) {
 			root = null;
@@ -366,7 +426,7 @@ public class RBTree implements Serializable {
 	}
 
 	/**
-	 * 解决插入冲突
+	 * 解决插入冲突（红红冲突）
 	 * 
 	 * @author HuaQi.Yang
 	 * @date 2017年7月26日
