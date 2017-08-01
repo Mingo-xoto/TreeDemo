@@ -304,8 +304,6 @@ public class RBTree implements Serializable {
 					rNephew.color = BLACK;
 					rotateLeft(parent);
 				}
-				// if (first)
-				// removeFixup(brother, false);
 			}
 		}
 	}
