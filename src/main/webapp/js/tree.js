@@ -116,6 +116,7 @@
 				lastHierarchyWidth = brotherWidth==0?Math.pow(2,hierarchy)*(radius+d_val)*2:Math.pow(2,hierarchy)*(radius+d_val)*2+brotherWidth/2;// 当前子树末层宽度
 			}
 		}
+		// 子节点相对于其直接父节点的x坐标偏移量
 		var x_offset = lastHierarchyWidth/4;
 		// 圆心连线长（(x,y)圆心与(x - x_offset,y+y_offset)或者(x +
 		// x_offset,y+y_offset)连线长度）
