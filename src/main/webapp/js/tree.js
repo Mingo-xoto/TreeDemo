@@ -148,7 +148,6 @@
 		var l_param;
 		var r_param;
 		var lastHierarchyWidth = 0;
-		debugger;
 		if (left != null) {
 			l_param = getParam(left,0,0);
 			lastHierarchyWidth = l_param.lastHierarchyWidth;
@@ -157,7 +156,7 @@
 			drawChildNode(left, x - l_param.x_offset, y + y_offset);
 		}
 		if (right != null) {
-			r_param = getParam(right.left,lastHierarchyWidth,l_param.hierarchy);
+			r_param = getParam(right.left,lastHierarchyWidth,l_param==undefined?0:l_param.hierarchy);
 			link(x+r_param.o_x,y+r_param.o_y,x+r_param.x_offset,y+y_offset);
 			drawNode(right, x + r_param.x_offset, y + y_offset);
 			drawChildNode(right, x + r_param.x_offset, y + y_offset);
