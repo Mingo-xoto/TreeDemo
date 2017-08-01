@@ -1,5 +1,8 @@
 package com.yhq.controller;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -17,7 +20,11 @@ import com.yhq.structures.RBTreeTest;
 @RequestMapping("/tree/")
 public class TreeController {
 
+	private int pos = 0;
+
 	private RBTree tree;
+
+	private List<RBTree> trees = new ArrayList<>();
 
 	@ResponseBody
 	@RequestMapping("insert")
@@ -25,6 +32,8 @@ public class TreeController {
 		if (tree == null) {
 			tree = new RBTree(key);
 		} else {
+			trees.add(tree.cloneTree());
+			pos++;
 			tree.insert(key);
 		}
 		return tree;
@@ -52,8 +61,12 @@ public class TreeController {
 	@ResponseBody
 	@RequestMapping("remove")
 	public RBTree remove(@RequestParam int key) {
-		if (tree != null)
+		if (tree != null) {
+			trees.add(tree.cloneTree());
+			pos++;
+
 			tree.remove(key);
+		}
 		return tree;
 	}
 
@@ -68,6 +81,26 @@ public class TreeController {
 	@RequestMapping("copy")
 	public void copy(@RequestParam int nodeCount) {
 		tree = RBTreeTest.createDefaultTree(nodeCount);
+	}
+
+	@ResponseBody
+	@RequestMapping("backward")
+	public RBTree backward() {
+		if (!trees.contains(tree))
+			trees.add(tree.cloneTree());
+		if (pos > 0 && pos <= trees.size())
+			tree = trees.get(--pos);
+		return tree;
+	}
+
+	@ResponseBody
+	@RequestMapping("forward")
+	public RBTree forward() {
+		if (!trees.contains(tree))
+			trees.add(tree.cloneTree());
+		if (pos >= 0 && pos < trees.size() - 1)
+			tree = trees.get(++pos);
+		return tree;
 	}
 
 }

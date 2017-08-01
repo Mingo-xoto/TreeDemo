@@ -43,6 +43,8 @@
 	<br>
 	<br>
 	<input type="button" value="取出树" id="tree">
+	<input type="button" value="前驱" id="forward">
+	<input type="button" value="回退" id="backward">
 	<br>
 	<br>
 	<input type="text" value="11" id="nodeCount">
@@ -66,7 +68,7 @@
 		$("#i_key").val("");
 	});
 
-	function getTree(){
+	function getTree() {
 		$.ajax({
 			url : "${ctx}/tree/get",
 			success : function(data) {
@@ -77,37 +79,54 @@
 	$("#tree").click(function() {
 		getTree();
 	});
-	
+
+	$("#backward").click(function() {
+		$.ajax({
+			url : "${ctx}/tree/backward",
+			success : function(data) {
+				buildCanvas(data);
+			}
+		});
+	});
+
+	$("#forward").click(function() {
+		$.ajax({
+			url : "${ctx}/tree/forward",
+			success : function(data) {
+				buildCanvas(data);
+			}
+		});
+	});
+
 	$("#copy").click(function() {
 		$.ajax({
 			url : "${ctx}/tree/copy",
-			data:{
-				"nodeCount":$("#nodeCount").val()
+			data : {
+				"nodeCount" : $("#nodeCount").val()
 			},
 			success : function(data) {
 				getTree();
 			}
 		});
 	});
-	
+
 	$("#default").click(function() {
 		$.ajax({
 			url : "${ctx}/tree/default",
-			data:{
-				"nodeCount":$("#nodeCount").val()
+			data : {
+				"nodeCount" : $("#nodeCount").val()
 			},
 			success : function(data) {
 				buildCanvas(data);
 			}
 		});
 	});
-	
-	
+
 	$("#remove").click(function() {
 		$.ajax({
 			url : "${ctx}/tree/remove",
-			data:{
-				"key":$("#d_key").val()
+			data : {
+				"key" : $("#d_key").val()
 			},
 			success : function(data) {
 				buildCanvas(data);
@@ -115,7 +134,7 @@
 		});
 		$("#d_key").val("");
 	});
-	
+
 	$("#delete").click(function() {
 		$.ajax({
 			url : "${ctx}/tree/delete",

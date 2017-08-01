@@ -214,6 +214,7 @@ public class RBTree implements Serializable {
 
 	/**
 	 * 解决移除节点冲突（黑黑冲突）
+	 * 
 	 * @author HuaQi.Yang
 	 * @date 2017年8月1日
 	 * @param substitute
@@ -240,12 +241,13 @@ public class RBTree implements Serializable {
 		if (brother.color) {
 			blackBrother(substitute, first, parent, brother, leftBrother, lNephew, rNephew);
 		} else {
-			redBrotherCase(first, parent, brother, leftBrother, lNephew);
+			redBrotherCase(parent, brother, leftBrother);
 		}
 	}
 
 	/**
 	 * 黑兄情况
+	 * 
 	 * @author HuaQi.Yang
 	 * @date 2017年8月1日
 	 * @param substitute
@@ -302,14 +304,15 @@ public class RBTree implements Serializable {
 					rNephew.color = BLACK;
 					rotateLeft(parent);
 				}
-				if (first)
-					removeFixup(brother, false);
+				// if (first)
+				// removeFixup(brother, false);
 			}
 		}
 	}
 
 	/**
 	 * 黑兄二黑侄情况
+	 * 
 	 * @author HuaQi.Yang
 	 * @date 2017年8月1日
 	 * @param substitute
@@ -336,6 +339,7 @@ public class RBTree implements Serializable {
 
 	/**
 	 * 红兄情况
+	 * 
 	 * @author HuaQi.Yang
 	 * @date 2017年8月1日
 	 * @param first
@@ -344,25 +348,22 @@ public class RBTree implements Serializable {
 	 * @param leftBrother
 	 * @param lNephew
 	 */
-	private void redBrotherCase(boolean first, RBNode parent, RBNode brother, boolean leftBrother, RBNode lNephew) {
+	private void redBrotherCase(RBNode parent, RBNode brother, boolean leftBrother) {
 		// brother为红色时：父节点一定是黑色
-		if (parent.parent == null) {
-			// 父节点是根节点:则设置左侄子为红色即可
-			lNephew.color = RED;
-		} else
-			parent.color = RED;
-		if (first) {
-			if (leftBrother) {// LL
-				rotateRight(parent);
-			} else {// RR
-				rotateLeft(parent);
-			}
+		parent.color = BLACK;
+		if (leftBrother) {// LL
+			brother.right.color = RED;
+			rotateRight(parent);
+		} else {// RR
+			brother.left.color = RED;
+			rotateLeft(parent);
 		}
 		brother.color = BLACK;
 	}
 
 	/**
 	 * 断开真正被删除的节点
+	 * 
 	 * @author HuaQi.Yang
 	 * @date 2017年8月1日
 	 * @param parent
@@ -378,6 +379,7 @@ public class RBTree implements Serializable {
 
 	/**
 	 * 移除叶子节点
+	 * 
 	 * @author HuaQi.Yang
 	 * @date 2017年8月1日
 	 * @param leaf
@@ -629,4 +631,19 @@ public class RBTree implements Serializable {
 		show(node);
 	}
 
+	public RBTree cloneTree() {
+		RBTree tree = new RBTree();
+		traverseLeftAndBuildNewTree(root, tree);
+		return tree;
+	}
+
+	private void traverseLeftAndBuildNewTree(RBNode node, RBTree tree) {
+		tree.insert(node.key);
+		if (node.left != null) {
+			traverseLeftAndBuildNewTree(node.left, tree);
+		}
+		if (node.right != null) {
+			traverseLeftAndBuildNewTree(node.right, tree);
+		}
+	}
 }
