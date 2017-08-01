@@ -64,10 +64,7 @@ public class RBTree implements Serializable {
 	}
 
 	public RBTree(int rootKey) {
-		root = new RBNode();
-		root.key = rootKey;
-		root.color = BLACK;
-		size++;
+		insertRoot(rootKey);
 	}
 
 	public class RBNode implements Serializable {
@@ -116,12 +113,23 @@ public class RBTree implements Serializable {
 	}
 
 	public void insert(int key) {
-		RBNode node = new RBNode();
-		node.key = key;
-		node.color = RED;
-		insert(node, root);
+		if (root == null) {
+			insertRoot(key);
+		} else {
+			RBNode node = new RBNode();
+			node.key = key;
+			node.color = RED;
+			insert(node, root);
+			size++;
+			// traverseLeft();
+		}
+	}
+
+	private void insertRoot(int rootKey) {
+		root = new RBNode();
+		root.key = rootKey;
+		root.color = BLACK;
 		size++;
-		// traverseLeft();
 	}
 
 	private void insert(RBNode newNode, RBNode tmpNode) {
@@ -153,6 +161,7 @@ public class RBTree implements Serializable {
 		while (true) {
 			if (key == t.key) {
 				remove(t);
+				size--;
 				return;
 			} else if (key < t.key) {
 				t = t.left;
@@ -171,9 +180,9 @@ public class RBTree implements Serializable {
 				// 叶子节点
 				if (delete.color) {
 					// case1：叶子为黑色，与case5相同情况处理
-					deleteFixup(delete, true);
+					removeFixup(delete, true);
 				}
-				// case2：叶子为红色，直接删除即可
+				// case2：根节点或为红色叶子，直接删除即可
 				removeRedLeaf(delete);
 			} else {
 				// case3: 只有非空右子树,则delete一定是黑色，且右子树一定为红色
@@ -189,29 +198,26 @@ public class RBTree implements Serializable {
 				// 双非空子树
 				// 找到替换的前驱节点（真正删除的节点）
 				RBNode substitute = searchLastRight(delete.left);
+				// 将substitute内容覆盖delete内容
+				delete.key = substitute.key;
 				if (substitute.color) {
 					// case5：substitute为黑色节点
-					deleteFixup(substitute, true);
 					// 若delete的前驱节点就是其左子树：则证明其左子树没有右子树，直接将左子树的左子树替换为其本身
-					if (substitute == delete.left && substitute.left != null) {
-						delete.left = substitute.left;
-						substitute.left.parent = delete;
-						substitute.left.color = BLACK;
-					} else {
-						removeRedLeaf(substitute);
-					}
+					remove(substitute);
 				} else {
 					// case6： substitute为红色节点：直接断开即可
 					removeRedLeaf(substitute);
 				}
-				// 将substitute内容覆盖delete内容
-				delete.key = substitute.key;
 			}
 		}
 	}
 
-	private void deleteFixup(RBNode substitute, boolean first) {
+	private void removeFixup(RBNode substitute, boolean first) {
 		RBNode parent = substitute.parent;
+		if (parent == null) {
+			// 根节点则不用继续调整
+			return;
+		}
 		RBNode brother;
 		boolean leftBrother;
 		if (parent.left == substitute) {
@@ -233,7 +239,7 @@ public class RBTree implements Serializable {
 						brother.color = RED;
 						substitute.color = BLACK;
 						if (first)
-							deleteFixup(parent, false);
+							removeFixup(parent, false);
 					} else {
 						// 黑兄二黑侄红父:只需将父结点变为黑色，兄结点变为红色，新结点变为黑色
 						blackBrotherAndNephewAndRedParent(parent, brother, leftBrother);
@@ -281,12 +287,16 @@ public class RBTree implements Serializable {
 						rotateLeft(parent);
 					}
 					if (first)
-						deleteFixup(brother, false);
+						removeFixup(brother, false);
 				}
 			}
 		} else {
 			// brother为红色时：父节点一定是黑色
-			parent.color = RED;
+			if (parent.parent == null) {
+				// 父节点是根节点:则设置左侄子为红色即可
+				lNephew.color = RED;
+			} else
+				parent.color = RED;
 			if (first) {
 				if (leftBrother) {// LL
 					rotateRight(parent);
@@ -314,6 +324,10 @@ public class RBTree implements Serializable {
 
 	private void removeRedLeaf(RBNode leaf) {
 		RBNode parent = leaf.parent;
+		if (parent == null) {
+			root = null;
+			return;
+		}
 		if (parent.left == leaf) {
 			parent.left = null;
 		} else {
