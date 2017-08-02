@@ -129,7 +129,6 @@ public class RBTree implements Serializable {
 		root = new RBNode();
 		root.key = rootKey;
 		root.color = BLACK;
-		size++;
 	}
 
 	private void insert(RBNode newNode, RBNode tmpNode) {
