@@ -90,7 +90,7 @@
 		
 
 		ctx.fillStyle = "#0000FF";
-		ctx.font = "normal 1px 微软雅黑";
+		ctx.font = "normal 1px 宋体";
 		ctx.textBaseline = "middle";
 		ctx.textAlign = "center";　
 		ctx.fillText("("+x+","+y+")", x, y+25);
