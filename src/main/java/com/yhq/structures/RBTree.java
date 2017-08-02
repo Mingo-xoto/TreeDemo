@@ -120,9 +120,9 @@ public class RBTree implements Serializable {
 			node.key = key;
 			node.color = RED;
 			insert(node, root);
-			size++;
 			// traverseLeft();
 		}
+		size++;
 	}
 
 	private void insertRoot(int rootKey) {
