@@ -4,14 +4,15 @@
 	var radius = 20;
 	var d_val = 5;
 	var y_offset = 50;
-// 深度
+    //树深
 	function depth(root) {
 		if (root == null) {
 			return -1;
 		}
 		return height(root) - 1;
 	}
-
+	
+	//树高
 	function height(node) {
 		if (node == null) {
 			return 0;
@@ -20,8 +21,8 @@
 		var rh = height(node.right);
 		return lh > rh ? lh + 1 : rh + 1;
 	}
-
 	
+	//重绘画布
 	function resizeCanvas(){
 		canvas = document.getElementById("tree-div");
 		// 重绘画布区域背景
@@ -100,9 +101,8 @@
 		circle(node.key, x, y, node.color);
 		key(node.key, x, y);
 	}
-
 	
-	
+	//计算节点圆圈参数
 	function getParam(node,brotherWidth,l_hierarchy){
 		var hierarchy;
 		var lastHierarchyWidth;
@@ -131,6 +131,9 @@
 		return new param(node==null?"Nil":node.key,lastHierarchyWidth,x_offset,o_x,o_y,hierarchy);
 	}
 	
+	/**
+	 * 节点圆圈参数
+	 **/
 	function param(key,lastHierarchyWidth,x_offset,o_x,o_y,hierarchy){
 		this.key=key;
 		this.lastHierarchyWidth = lastHierarchyWidth;
